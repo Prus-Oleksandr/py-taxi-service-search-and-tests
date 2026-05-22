@@ -15,18 +15,29 @@ class ModelsTest(TestCase):
             password=self.password,
             first_name="test_name",
             last_name="test_name",
-            license_number="ADM56983"
+            license_number="ADM56983",
         )
-        self.manufacturer = Manufacturer.objects.create(name="test_name", country="test_cnt")
+        self.manufacturer = Manufacturer.objects.create(
+            name="test_name", country="test_cnt"
+        )
 
     def test_manufacturer_str(self):
-        self.assertEqual(str(self.manufacturer), f"{self.manufacturer.name} {self.manufacturer.country}")
+        self.assertEqual(
+            str(self.manufacturer),
+            f"{self.manufacturer.name} {self.manufacturer.country}",
+        )
 
     def test_driver_str(self):
-        self.assertEqual(str(self.driver), f"{self.driver.username} ({self.driver.first_name} {self.driver.last_name})")
+        self.assertEqual(
+            str(self.driver),
+            f"{self.driver.username} "
+            f"({self.driver.first_name} {self.driver.last_name})",
+        )
 
     def test_car_str(self):
-        car = Car.objects.create(model="test_model", manufacturer=self.manufacturer)
+        car = Car.objects.create(
+            model="test_model", manufacturer=self.manufacturer
+        )
         car.drivers.add(self.driver)
         self.assertEqual(str(car), "test_model")
 
@@ -37,7 +48,9 @@ class ModelsTest(TestCase):
         self.assertEqual(self.driver.license_number, "ADM56983")
 
     def test_driver_abs_url(self):
-        expected_url = reverse("taxi:driver-detail", kwargs={"pk": self.driver.pk})
+        expected_url = reverse(
+            "taxi:driver-detail", kwargs={"pk": self.driver.pk}
+        )
         actual_url = self.driver.get_absolute_url()
         self.assertEqual(actual_url, expected_url)
 
@@ -51,16 +64,18 @@ class ModelsTest(TestCase):
 class ListViewTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
-            username="test_user",
-            password="password123"
+            username="test_user", password="password123"
         )
         self.client.login(username="test_user", password="password123")
 
-        self.manufacturer = Manufacturer.objects.create(name="Toyota", country="Japan")
-        self.car = Car.objects.create(model="Mustang", manufacturer=self.manufacturer)
+        self.manufacturer = Manufacturer.objects.create(
+            name="Toyota", country="Japan"
+        )
+        self.car = Car.objects.create(
+            model="Mustang", manufacturer=self.manufacturer
+        )
         self.driver = get_user_model().objects.create_user(
-            username="schumacher",
-            license_number="SHU11111"
+            username="schumacher", license_number="SHU11111"
         )
 
     def test_manufacturer_list_and_search(self):
@@ -108,15 +123,23 @@ class ToggleAssignToCarTest(TestCase):
         self.user = get_user_model().objects.create_user(
             username=self.username,
             password=self.password,
-            license_number="XYZ12345"
+            license_number="XYZ12345",
         )
         self.client.login(username=self.username, password=self.password)
 
-        self.manufacturer = Manufacturer.objects.create(name="Toyota", country="Japan")
-        self.car = Car.objects.create(model="Camry", manufacturer=self.manufacturer)
+        self.manufacturer = Manufacturer.objects.create(
+            name="Toyota", country="Japan"
+        )
+        self.car = Car.objects.create(
+            model="Camry", manufacturer=self.manufacturer
+        )
 
-        self.url = reverse("taxi:toggle-car-assign", kwargs={"pk": self.car.pk})
-        self.expected_redirect = reverse("taxi:car-detail", args=[self.car.pk])
+        self.url = reverse(
+            "taxi:toggle-car-assign", kwargs={"pk": self.car.pk}
+        )
+        self.expected_redirect = reverse(
+            "taxi:car-detail", args=[self.car.pk]
+        )
 
     def test_toggle_assign_to_car_behavior(self):
         response = self.client.get(self.url)
@@ -136,38 +159,30 @@ class DriverFormsTest(TestCase):
             "password2": "dhG7!fks9_QaaX",
             "license_number": "ABC12345",
             "first_name": "Oleg",
-            "last_name": "Losos"
+            "last_name": "Losos",
         }
         form = DriverCreationForm(data=form_data)
         self.assertTrue(form.is_valid())
 
     def test_driver_license_update_form_is_valid(self):
-        form_data = {
-            "license_number": "XYZ98765"
-        }
+        form_data = {"license_number": "XYZ98765"}
         form = DriverLicenseUpdateForm(data=form_data)
         self.assertTrue(form.is_valid())
 
     def test_license_number_wrong_length(self):
-        form_data = {
-            "license_number": "AB1234"
-        }
+        form_data = {"license_number": "AB1234"}
         form = DriverLicenseUpdateForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("license_number", form.errors)
 
     def test_license_number_lowercase_letters(self):
-        form_data = {
-            "license_number": "abc12345"
-        }
+        form_data = {"license_number": "abc12345"}
         form = DriverLicenseUpdateForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("license_number", form.errors)
 
     def test_license_number_not_digits_at_end(self):
-        form_data = {
-            "license_number": "ABC1234F"
-        }
+        form_data = {"license_number": "ABC1234F"}
         form = DriverLicenseUpdateForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("license_number", form.errors)
